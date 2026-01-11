@@ -1,30 +1,65 @@
 package models;
 
-public abstract class Node {
-    protected  String name;
-    protected  Directory parent;
+import enums.NodePermission;
+import java.security.Permission;
+import java.time.LocalDateTime;
+import java.util.EnumSet;
+import java.util.Set;
 
-    protected Node(String name, Directory dic){
+public abstract class Node {
+
+    protected String name;
+    protected Directory parent;
+
+    protected Set<NodePermission> permissions;
+    protected LocalDateTime createdAt;
+    protected LocalDateTime updatedAt;
+
+    protected Node(String name, Directory dic) {
         this.name = name;
         this.parent = dic;
+
+        this.permissions = EnumSet.of(NodePermission.READ, NodePermission.WRITE);
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public Directory getParent(){
+    public Directory getParent() {
         return this.parent;
     }
-    
-    public String getPath(){
-        if(parent == null) return "/";
-        if(parent.getParent() == null) return "/" + name;
+
+    public String getPath() {
+        if (parent == null) {
+            return "/";
+        }
+        if (parent.getParent() == null) {
+            return "/" + name;
+        }
 
         return parent.getParent() + "/" + name;
 
     }
 
-    public abstract  boolean isDirectory();
+    public abstract boolean isDirectory();
+
+    public boolean hasPermission(NodePermission permission) {
+        return permissions.contains(permission);
+    }
+
+    public void addPermission(NodePermission permission) {
+        permissions.add(permission);
+    }
+
+    public void removePermission(Permission permission) {
+        permissions.remove(permission);
+    }
+
+    protected void touch() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
 }
