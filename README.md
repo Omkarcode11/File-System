@@ -28,6 +28,65 @@ This project implements a hierarchical file system where users can create direct
 2.  **Service Layer Pattern**:
     - `FileSystem` service encapsulates all logic for path traversal and file operations, keeping the models clean.
 
+## Class Diagram
+
+```mermaid
+classDiagram
+    class Node {
+        <<abstract>>
+        #String name
+        #Directory parent
+        #Set~NodePermission~ permissions
+        #LocalDateTime createdAt
+        #LocalDateTime updatedAt
+        +getPath() String
+        +isDirectory() boolean*
+        +hasPermission(permission) boolean
+        +addPermission(permission)
+        +removePermission(permission)
+    }
+
+    class FileNode {
+        -StringBuilder content
+        +read() String
+        +write(text)
+        +isDirectory() boolean
+    }
+
+    class Directory {
+        +Map~String, Node~ children
+        +addNode(node)
+        +getNode(name) Node
+        +removeNode(name)
+        +list() List~String~
+        +isDirectory() boolean
+    }
+
+    class FileSystem {
+        -Directory root
+        +mkdir(path)
+        +touch(path)
+        +write(path, content)
+        +read(path) String
+        +ls(path)
+        +rm(path)
+    }
+
+    class NodePermission {
+        <<enumeration>>
+        READ
+        WRITE
+        DELETE
+        EXECUTE
+    }
+
+    Node <|-- FileNode
+    Node <|-- Directory
+    Directory "1" o-- "0..*" Node : contains
+    FileSystem --> Directory : root
+    Node --> NodePermission : carries
+```
+
 ## Detailed Implementation
 
 ### 1. Models (`src/models/`)
