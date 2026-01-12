@@ -17,11 +17,11 @@ public class Directory extends Node {
     }
 
     public void addNode(Node node) {
-        if (children.containsKey(node)) {
+        if (children.containsKey(node.getName())) {
             throw new RuntimeException("Node already exists: " + node.getName());
         }
 
-        children.put(name, node);
+        children.put(node.getName(), node);
     }
 
     public Node getNode(String name) {

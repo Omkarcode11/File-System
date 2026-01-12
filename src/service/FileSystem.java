@@ -1,29 +1,34 @@
 package service;
 
-import models.Directory;
-import models.FileNode;
-import org.w3c.dom.Node;
+import models.*;
+import models.Node;
 
 public class FileSystem {
 
     private Directory root;
 
-    public FileSystem(Directory dict) {
-        this.root = dict;
+    public FileSystem() {
+        this.root = new Directory("/", null);
     }
 
     private String[] tokenize(String path) {
-        return path.split("/");
+        if (path.equals("/"))
+            return new String[0];
+        return path.substring(1).split("/");
     }
 
     private Directory traverseToParent(String path) {
+        if (path.equals("/") || !path.startsWith("/")) {
+            return root;
+        }
+
         String[] parts = tokenize(path);
         Directory curr = this.root;
 
-        for (int i = 1; i < parts.length - 1; i++) {
-            Node node = (Node) curr.getNode(parts[i]);
-            if (node == null || !((Directory) node).isDirectory()) {
-                throw new RuntimeException("Path is invalid  not able to find " + parts[i]);
+        for (int i = 0; i < parts.length - 1; i++) {
+            Node node = curr.getNode(parts[i]);
+            if (node == null || !node.isDirectory()) {
+                throw new RuntimeException("Path is invalid: not able to find " + parts[i]);
             }
             curr = (Directory) node;
         }
@@ -47,13 +52,25 @@ public class FileSystem {
         Directory parent = traverseToParent(path);
         String name = path.substring(path.lastIndexOf("/") + 1);
 
-        Node file = (Node) parent.getNode(name);
+        Node file = parent.getNode(name);
 
-        if (file == null || ((FileNode) file).isDirectory()) {
-            throw new RuntimeException("File not found " + name);
+        if (file == null || file.isDirectory()) {
+            throw new RuntimeException("File not found: " + name);
         }
 
         ((FileNode) file).write(content);
+    }
+
+    public String read(String path) {
+        Directory parent = traverseToParent(path);
+        String name = path.substring(path.lastIndexOf("/") + 1);
+
+        Node file = parent.getNode(name);
+        if (file == null || file.isDirectory()) {
+            throw new RuntimeException("File not found: " + name);
+        }
+
+        return ((FileNode) file).read();
     }
 
     public void ls(String path) {
@@ -61,27 +78,22 @@ public class FileSystem {
 
         if (!path.equals("/")) {
             String[] parts = tokenize(path);
-            for (int i = 1; i < parts.length; i++) {
-                Node node = (Node) curr.getNode(parts[i]);
-                if (node == null || !((Directory) node).isDirectory()) {
-                    throw new RuntimeException("Invalid Path");
+            for (int i = 0; i < parts.length; i++) {
+                Node node = curr.getNode(parts[i]);
+                if (node == null || !node.isDirectory()) {
+                    throw new RuntimeException("Invalid Path: " + path);
                 }
-
                 curr = (Directory) node;
             }
         }
-        System.err.println(curr.list());
+        System.out.println("Contents of " + path + ": " + curr.list());
     }
 
     public void rm(String path) {
-        Directory node = traverseToParent(path);
+        Directory parent = traverseToParent(path);
         String name = path.substring(path.lastIndexOf("/") + 1);
 
-        if (node == null || !node.isDirectory()) {
-            throw new RuntimeException("Invalid Path");
-        }
-
-        node.removeNode(name);
+        parent.removeNode(name);
     }
 
 }

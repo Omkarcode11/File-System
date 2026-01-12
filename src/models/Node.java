@@ -1,7 +1,6 @@
 package models;
 
 import enums.NodePermission;
-import java.security.Permission;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Set;
@@ -36,12 +35,8 @@ public abstract class Node {
         if (parent == null) {
             return "/";
         }
-        if (parent.getParent() == null) {
-            return "/" + name;
-        }
-
-        return parent.getParent() + "/" + name;
-
+        String parentPath = parent.getPath();
+        return (parentPath.equals("/") ? "" : parentPath) + "/" + name;
     }
 
     public abstract boolean isDirectory();
@@ -54,7 +49,7 @@ public abstract class Node {
         permissions.add(permission);
     }
 
-    public void removePermission(Permission permission) {
+    public void removePermission(NodePermission permission) {
         permissions.remove(permission);
     }
 
